@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Contact Data Enrichment Dashboard - V7</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>body {font-family:sans-serif;margin:0;background:#f7f8fa;}.container{max-width:1320px;margin:auto;padding:28px;}h1{font-size:28px;margin-bottom:10px;color:#344392;}table{border-collapse:collapse;width:100%;background:#fff;box-shadow:0 1px 5px #0001;}th,td{padding:9px 12px;}th{background:#f2f2fa;text-align:left;font-weight:bold;border-bottom:2px solid #e0e0e0;}tr:hover{background:#f0f8ff;}input[type="text"]{padding:7px 10px;font-size:14px;border-radius:4px;border:1px solid #d3d7e0;margin-bottom:10px;max-width:190px;width:100%;}.badge{display:inline-block;border-radius:2px;padding:1px 7px;font-size:11px;font-weight:500;color:#fff;margin-right:5px;}.enrich-form{background:#fff;padding:20px 23px 12px 23px;margin:30px 0 28px 0;border-radius:8px;box-shadow:0 2px 10px #0002;}.enrich-row{margin-bottom:12px;display:flex;align-items:center;gap:12px;}.enrich-row label{font-weight:600;width:130px;display:inline-block;color:#344392;}.btn{background:#344392;color:#fff;border:none;padding:8px 18px;border-radius:4px;cursor:pointer;margin:8px 6px 8px 0;font-weight:600;font-size:15px;}.btn:hover{background:#3d52b8;}#main-tabs{margin:18px 0 0 0;display:flex;gap:14px;}.tabN{padding:11px 26px;background:#e0e5f8;border:none;font-size:16px;color:#425080;border-radius:6px 6px 0 0;cursor:pointer;font-weight:600;outline:none;transition:background 0.2s;}.tabN.on{background:#fff;color:#344392;border-bottom:2px solid #344392;}.tab-pane{display:none;}.tab-pane.active{display:block;}.search-bar{margin-bottom:20px;}.success{color:#179657;font-weight:600;}.info-badge{background:#3d9ed6;}.manual{background:#344392;}.original{background:#7db716;}.missing{background:#fa5904;}.needs-enrich{background:#ffbe0b;color:#304880;}.field-src{font-size:11px;color:#777;font-style:italic;}.dark-bg{background:#ecf1fd;}.secTitle{font-size:18px;margin:18px 0 9px 0;font-weight:600;}@media (max-width:800px){.enrich-form{padding:12px}.container{padding:7px}th,.enrich-row label{font-size:13px;}}  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Contact Data Enrichment Dashboard (V7)</h1>
+  <div id="main-tabs">
+    <button class="tabN on" id="tabDashBtn" onclick="showTab('dash')">Dashboard</button>
+    <button class="tabN" onclick="showTab('add')">Add/Enrich Contact</button>
+    <button class="tabN" onclick="showTab('bulk')">Bulk Upload</button>
+  </div>
+
+  <!-- Dashboard Tab -->
+  <div class="tab-pane active" id="tab-dash">
+    <div class="search-bar"><input id="searchQ" type="text" placeholder="Search email/company/country..." oninput="renderTable()"> <button class="btn" onclick="exportCSV()"><i class="fas fa-download"></i> Export CSV</button></div>
+    <div style="font-size:15px;margin-bottom:12px;">
+      <span id="stat-contacts"></span> | <span id="stat-completeness"></span> | <span id="stat-country"></span>
+    </div>
+    <div id="tbl-wrap" style="overflow-x:auto;">
+      <table id="contact-table"></table>
+    </div>
+  </div>
+
+  <!-- Single Entry Form -->
+  <div class="tab-pane" id="tab-add">
+    <div class="enrich-form">
+      <form onsubmit="addContact();return false;" autocomplete="off">
+        <div class="secTitle">Enter or Enrich Contact</div>
+        <div class="enrich-row"><label>Email</label><input id="i-email" type="text" autocomplete="off"></div>
+        <div class="enrich-row"><label>First Name</label><input id="i-fname" type="text"></div>
+        <div class="enrich-row"><label>Last Name</label><input id="i-lname" type="text"></div>
+        <div class="enrich-row"><label>Company</label><input id="i-com" type="text"></div>
+        <div class="enrich-row"><label>Job Title</label><input id="i-title" type="text"></div>
+        <div class="enrich-row"><label>City</label><input id="i-city" type="text"></div>
+        <div class="enrich-row"><label>Country</label><input id="i-country" type="text"></div>
+        <div class="enrich-row"><label>Phone</label><input id="i-phone" type="text"></div>
+        <div class="enrich-row"><label>Language</label><input id="i-lang" type="text"></div>
+        <div class="enrich-row"><label>Address 1</label><input id="i-adr1" type="text"></div>
+        <div class="enrich-row"><label>Address 2</label><input id="i-adr2" type="text"></div>
+        <div class="enrich-row"><label>Postcode</label><input id="i-pcode" type="text"></div>
+        <div class="enrich-row"><label>State/Province</label><input id="i-state" type="text"></div>
+        <div class="enrich-row"><label>Last Mailed</label><input id="i-lmd" type="text"></div>
+        <div class="enrich-row"><label>Last Opened</label><input id="i-lod" type="text"></div>
+        <div class="enrich-row"><button type="button" class="btn" onclick="triggerEnrich()"><i class="fas fa-magic"></i> Enrich</button> <button class="btn" type="submit">Save Entry</button> <button class="btn" onclick="hideAdd();return false;">Cancel</button></div>
+        <div id="enrich-logic-summary" style="margin:18px 0 8px 0;font-size:14px;"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Bulk Upload Tab -->
+  <div class="tab-pane" id="tab-bulk">
+    <div class="secTitle">Bulk Upload (CSV)</div>
+    <input type="file" id="bulk-upload" accept=".csv,.xlsx" onchange="handleBulkUpload(event)">
+    <div id="bulk-status" style="margin:15px 0;color:#179657;"></div>
+  </div>
+
+</div>
+<script>
+const FIELDS = ["DateCreated","Email","LastMailedDate","LastOpenedDate","ADDRESS_1","ADDRESS_2","CITY","COMPANY_NAME","COUNTRY","FIRSTNAME","LANGUAGE","LASTNAME","MOBILEPHONE","PHONENUMBER","POSITION","POSTCODE","STATE_PROVINCE"];
+let db = [], enrichTargets = [], lastEnrich = null;
+fetch('db_v7_sample.json').then(r=>r.json()).then(json=>{db=json.map(row=>{let o={};FIELDS.forEach(f=>o[f]=row[f]||'');return o});renderTable();updateStats();});
+
+function showTab(tab){document.querySelectorAll('.tab-pane').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tabN').forEach(t=>t.classList.remove('on'));if(tab==='dash'){document.getElementById('tab-dash').classList.add('active');document.getElementById('tabDashBtn').classList.add('on');}else if(tab==='add'){document.getElementById('tab-add').classList.add('active');document.querySelectorAll('.tabN')[1].classList.add('on');hideAdd();}else{document.getElementById('tab-bulk').classList.add('active');document.querySelectorAll('.tabN')[2].classList.add('on')}}
+function renderTable(){let q=(document.getElementById('searchQ').value||'').toLowerCase();let t='<tr>'+FIELDS.map(f=>'<th>'+f+'</th>').join('')+'</tr>';let shown=0;db.forEach(r=>{let s=FIELDS.map(f=>r[f].toLowerCase()).join(' ');if(q&&s.indexOf(q)===-1)return;t+='<tr>'+FIELDS.map(f=>{let val=r[f];if(!val)return'<td><span class="badge needs-enrich">Missing</span></td>';if(r._manual&&r._manual.includes(f))return'<td><span class="badge manual">Manual</span> '+val+'</td>';return'<td><span class="badge original">Original</span> '+val+'</td>';}).join('')+'</tr>';shown++;});if(!shown)t+='<tr><td colspan="'+FIELDS.length+'" style="text-align:center;">No records found</td></tr>';document.getElementById('contact-table').innerHTML=t;}
+function statCompleteness(){let n=db.length;let c=db.filter(r=>r.Email&&r.CITY&&r.COUNTRY).length;return Math.round(100*c/n)+'% complete';}function updateStats(){document.getElementById('stat-contacts').textContent=db.length+" records";document.getElementById('stat-completeness').textContent=statCompleteness();let filled=db.filter(r=>r.COUNTRY).length;document.getElementById('stat-country').textContent=filled+' with country';}
+function showAdd(){document.getElementById('tab-add').classList.add('active');document.querySelectorAll('.tabN').forEach(t=>t.classList.remove('on'));document.querySelectorAll('.tabN')[1].classList.add('on');hideAdd();}
+function hideAdd(){document.querySelectorAll('.enrich-form input').forEach(i=>i.value='');document.getElementById('enrich-logic-summary').innerHTML='';}
+function enrichLogic(o){let log=[];
+  // 1) Company Country
+  if(o['COMPANY_NAME']&&companyCountryMap[o['COMPANY_NAME']]){log.push('[company_country] '+companyCountryMap[o['COMPANY_NAME']]);o['COUNTRY']=companyCountryMap[o['COMPANY_NAME']];return log;}
+  // 2) Phone Parsing (basic international only)
+  let phone=(o['PHONENUMBER']||'').replace(/\D/g,'');if(phone.length>=11){if(phone.startsWith('1')){log.push('[phone] US/Canada (+1)');o['COUNTRY']='United States/Canada';return log;}}
+  // 3) Email Domain ccTLD
+  if(o['Email']&&o['Email'].match(/\.co\.uk$/)){log.push('[email_tld] United Kingdom');o['COUNTRY']='United Kingdom';return log;}
+  // More rules can be added here as needed.
+  log.push('Unresolved: non-enriched');return log;}
+function triggerEnrich(){let o={};FIELDS.forEach(f=>{let v=document.getElementById('i-'+f.replace(/_/g,'').replace('EMAIL','email').toLowerCase());if(v)o[f]=v.value.trim();});let log=enrichLogic(o), txt=log.map(l=>'<div>'+l+'</div>').join('');document.getElementById('enrich-logic-summary').innerHTML=txt;lastEnrich=o;}
+function addContact(){let o={}, m=[];FIELDS.forEach(f=>{let v=document.getElementById('i-'+f.replace(/_/g,'').replace('EMAIL','email').toLowerCase());o[f]=v?v.value.trim():'';if(!o[f])m.push(f);});o._manual=FIELDS.filter(f=>o[f]);db.unshift(o);hideAdd();renderTable();updateStats();}
+function exportCSV(){let rows=[FIELDS.join(',')];db.forEach(r=>{rows.push(FIELDS.map(f=>`"${String(r[f]||'').replace(/"/g,'""')}"`).join(','));});let csv=rows.join('\n');let blob=new Blob([csv],{type:'text/csv'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='contacts_enriched.csv';a.click();}
+function handleBulkUpload(e){const file=e.target.files[0];if(!file)return;let reader=new FileReader();reader.onload=function(event){let lines=event.target.result.split('\n');let cols=lines[0].split(',').map(x=>x.trim().replace(/\r/g,''));lines.slice(1).forEach(line=>{if(!line.trim())return;let vals=line.split(',');let row={};FIELDS.forEach((f,i)=>row[f]=cols.indexOf(f)!==-1?vals[cols.indexOf(f)].replace(/\r/g,''):"");db.push(row);});renderTable();updateStats();document.getElementById('bulk-status').textContent='Upload complete! '+db.length+' total records.';};reader.readAsText(file);}
+const companyCountryMap={}; // For rule 1, populate as needed
+</script>
+</body>
+</html>
